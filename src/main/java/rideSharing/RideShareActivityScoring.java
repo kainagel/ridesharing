@@ -4,14 +4,14 @@ import org.matsim.api.core.v01.population.Activity;
 import org.matsim.core.scoring.SumScoringFunction.ActivityScoring;
 import org.matsim.core.scoring.functions.ActivityTypeOpeningIntervalCalculator;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
-import org.matsim.core.scoring.functions.CharyparNagelScoringParameters;
+import org.matsim.core.scoring.functions.ScoringParameters;
 
 public class RideShareActivityScoring implements ActivityScoring {
 	
 	private double score;
-	CharyparNagelScoringParameters params;
+	ScoringParameters params;
 
-	public RideShareActivityScoring(final CharyparNagelScoringParameters params) {
+	public RideShareActivityScoring(final ScoringParameters params) {
 		this.params = params;
 	}
 	

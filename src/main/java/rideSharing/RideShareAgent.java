@@ -117,18 +117,18 @@ public final class RideShareAgent implements MobsimDriverPassengerAgent{
 	public void endActivityAndComputeNextState(double now) {
 		// TODO Auto-generated method stub
 		VrpAgentLogic logic = (VrpAgentLogic)(dAgent.getAgentLogic());
-		if(pAgent.getNextPlanElement() instanceof Leg){
-			if(!((Leg)pAgent.getNextPlanElement()).getMode().equals(Run.MODE_DRIVER)){
+		if(((PlanAgent)pAgent).getNextPlanElement() instanceof Leg){
+			if(!((Leg)((PlanAgent)pAgent).getNextPlanElement()).getMode().equals(Run.MODE_DRIVER)){
 				pAgent.endActivityAndComputeNextState(now);
 				return;
 			}
 		}
-		double DynEndTime = logic.getVehicle().getT1();
-		double DynStartTime = logic.getVehicle().getT0();
+		double DynEndTime = logic.getVehicle().getServiceEndTime();
+		double DynStartTime = logic.getVehicle().getServiceBeginTime();
 		if(pAgent.getActivityEndTime() != Double.NEGATIVE_INFINITY && pAgent.getActivityEndTime() < DynStartTime ){
 			DynStartTime = pAgent.getActivityEndTime();
 		}
-		Schedule<? extends Task> schedule = logic.getVehicle().getSchedule();
+		Schedule schedule = logic.getVehicle().getSchedule();
 		if(!isDyn && now > DynEndTime && DynEndTime > 0){
 	    	pAgent.endActivityAndComputeNextState(now);
 	    	dAgent.setCurrentLinkId(getCurrentLinkId());
@@ -210,7 +210,7 @@ public final class RideShareAgent implements MobsimDriverPassengerAgent{
 			setIsDyn(false);
 			legDyn = false;
 			@SuppressWarnings("unchecked")
-			Schedule<AbstractTask> s = (Schedule<AbstractTask>) logic.getVehicle().getSchedule();
+			Schedule s = (Schedule) logic.getVehicle().getSchedule();
 			Vehicle veh = logic.getVehicle();
 			/*if(veh.getT0() == 0){
 				return;
@@ -222,9 +222,9 @@ public final class RideShareAgent implements MobsimDriverPassengerAgent{
 	    		veh.resetSchedule();
 	    		veh.getAgentLogic().computeInitialActivity(veh.getAgentLogic().getDynAgent());
 	            
-	    		s = (Schedule<AbstractTask>) veh.getSchedule();
+	    		s = (Schedule) veh.getSchedule();
 	    		veh.setStartLink(dAgent.getVehicle().getCurrentLink());
-				s.addTask(new StayTaskImpl(veh.getT0(), veh.getT1(), veh.getStartLink(), "wait"));
+				s.addTask(new StayTaskImpl(veh.getServiceBeginTime(), veh.getServiceEndTime(), veh.getStartLink(), "wait"));
 				s.addStayTaskNumber();
 				veh.setSchedule(s);
 				logic.getOptimizer().updateSchedule(veh,s);        
@@ -300,15 +300,15 @@ public final class RideShareAgent implements MobsimDriverPassengerAgent{
 		return dAgent;
 	}
 
-	public PlanElement getNextPlanElement() {
-		// TODO Auto-generated method stub
-		return pAgent.getNextPlanElement();
-	}
-
-	public PlanElement getCurrentPlanElement() {
-		// TODO Auto-generated method stub
-		return pAgent.getCurrentPlanElement();
-	}
+//	public PlanElement getNextPlanElement() {
+//		// TODO Auto-generated method stub
+//		return ((PlanAgent)pAgent).getNextPlanElement();
+//	}
+//
+//	public PlanElement getCurrentPlanElement() {
+//		// TODO Auto-generated method stub
+//		return ((PlanAgent)pAgent).getCurrentPlanElement();
+//	}
 
 	@Override
 	public boolean getEnterTransitRoute(TransitLine line, TransitRoute transitRoute, List<TransitRouteStop> stopsToCome,

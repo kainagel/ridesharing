@@ -47,7 +47,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
 	private Map<Id<Vehicle>, Vehicle> vehicles ;//we have only one vehicle
     
 
-	private Map<Id<Vehicle>, Schedule<AbstractTask>>schedule = new LinkedHashMap<>();// the vehicle's schedule
+	private Map<Id<Vehicle>, Schedule>schedule = new LinkedHashMap<>();// the vehicle's schedule
 
     public static final double PICKUP_DURATION = 120;
     public static final double DROPOFF_DURATION = 60;
@@ -71,13 +71,13 @@ public class RideShareOptimizer  implements VrpOptimizer{
     public void requestSubmitted(Request request){
     	Vehicle vehicle = null;
     	for(Vehicle veh: vehicles.values()){
-			if(veh.getT1() == 0){
+			if(veh.getServiceEndTime() == 0){
 				continue;
 			}
     		if(vehicle == null){
     			vehicle = veh;
     		}else{
-    			if(vehicle.getT0() > veh.getT0()){
+    			if(vehicle.getServiceBeginTime() > veh.getServiceBeginTime()){
     				Vehicle v = vehicle;
     				vehicle = veh;
     				veh = v;
@@ -90,7 +90,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
 					continue;
 				}
 				if(veh.getSchedule().getLastTask() == null
-						&& veh.getT0() < vehicle.getSchedule().getLastTask().getEndTime()){
+						&& veh.getServiceBeginTime() < vehicle.getSchedule().getLastTask().getEndTime()){
 					vehicle = veh;
 					continue;
 				}
@@ -125,13 +125,13 @@ public class RideShareOptimizer  implements VrpOptimizer{
     		if(veh.getId().equals(CurrentVeh.getId())){
     			continue;
     		}
-			if(veh.getT1() == 0){
+			if(veh.getServiceEndTime() == 0){
 				continue;
 			}
     		if(vehicle == null){
     			vehicle = veh;
     		}else{
-    			if(vehicle.getT0() > veh.getT0()){
+    			if(vehicle.getServiceBeginTime() > veh.getServiceBeginTime()){
     				Vehicle v = vehicle;
     				vehicle = veh;
     				veh = v;
@@ -144,7 +144,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
 					continue;
 				}
 				if(veh.getSchedule().getLastTask() == null
-						&& veh.getT0() < vehicle.getSchedule().getLastTask().getEndTime()){
+						&& veh.getServiceBeginTime() < vehicle.getSchedule().getLastTask().getEndTime()){
 					vehicle = veh;
 					continue;
 				}
@@ -175,7 +175,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
 
     public void requestSubmitted(Request request, Vehicle veh)
     {
-    	Schedule<AbstractTask> s = schedule.get(veh.getId());
+    	Schedule s = schedule.get(veh.getId());
 
         StayTask lastTask = (StayTask)Schedules.getLastTask(s);// only WaitTask possible here
         double currentTime = qsim.getSimTimer().getTimeOfDay();
@@ -211,7 +211,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
         List <AbstractTask> prepareTasks = new ArrayList<>();
 
         double t0 = s.getStatus() == ScheduleStatus.UNPLANNED ? //
-                Math.max(veh.getT0(), currentTime) : //
+                Math.max(veh.getServiceBeginTime(), currentTime) : //
                 Schedules.getLastTask(s).getEndTime();
 
         VrpPathWithTravelData p1 = VrpPaths.calcAndCreatePath(lastTask.getLink(), fromLink, t0,
@@ -254,7 +254,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
 
     public void driveRequestSubmitted(Request request, double now, Id<Vehicle> vehId)
     {
-    	Schedule<AbstractTask> s = schedule.get(vehId);
+    	Schedule s = schedule.get(vehId);
     	
         if(s.getTasks().size() > 0){    	
         	StayTask lastTask = (StayTask)Schedules.getLastTask(s);// last is not stay task
@@ -279,7 +279,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
         Link toLink = req.getToLink();
         Vehicle vehicle = vehicles.get(vehId);
 
-        VrpPathWithTravelData p1 = VrpPaths.calcAndCreatePath(fromLink, toLink, request.getT0(),
+        VrpPathWithTravelData p1 = VrpPaths.calcAndCreatePath(fromLink, toLink, request.getServiceBeginTime(),
                 router, travelTime);
         DriveTaskImpl tempTask = new DriveTaskImpl(p1);
         tempTask.onWayToActivity();
@@ -287,7 +287,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
         
         //just wait (and be ready) till the end of the vehicle's time window (T1)
         double t1 = p1.getArrivalTime() + STAY_DURATION;
-        double tEnd = Math.max(t1, vehicle.getT1());
+        double tEnd = Math.max(t1, vehicle.getServiceEndTime());
         schedule.get(vehId).addTask(new StayTaskImpl(t1, tEnd, toLink, "wait"));
         schedule.get(vehId).addStayTaskNumber();
         
@@ -296,7 +296,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
     }
 
     @Override
-    public void nextTask(Schedule<? extends Task> schedule)
+    public void nextTask(Schedule schedule)
     {
         shiftTimings(schedule.getVehicle().getId());
         schedule.nextTask();
@@ -340,7 +340,7 @@ public class RideShareOptimizer  implements VrpOptimizer{
             Task waitTask = tasks.get(tasks.size() - 1);
             waitTask.setBeginTime(waitTask.getBeginTime() + diff);
 
-            double tEnd = Math.max(waitTask.getBeginTime(), vehicles.get(id).getT1());
+            double tEnd = Math.max(waitTask.getBeginTime(), vehicles.get(id).getServiceEndTime());
             waitTask.setEndTime(tEnd);
         }
     }
@@ -349,8 +349,8 @@ public class RideShareOptimizer  implements VrpOptimizer{
 	public void setVehicleSchedule(VrpData vrpData) {
 		this.vehicles = vrpData.getVehicles();
 		for(Vehicle vehicle : vehicles.values()){
-			Schedule<AbstractTask> s = (Schedule<AbstractTask>) vehicle.getSchedule();
-			s.addTask(new StayTaskImpl(vehicle.getT0(), vehicle.getT1(), vehicle.getStartLink(), "wait"));
+			Schedule s = (Schedule) vehicle.getSchedule();
+			s.addTask(new StayTaskImpl(vehicle.getServiceBeginTime(), vehicle.getServiceEndTime(), vehicle.getStartLink(), "wait"));
 			s.addStayTaskNumber();
 			vehicle.setSchedule(s);
 			this.schedule.put(vehicle.getId(),s);
@@ -390,14 +390,14 @@ public class RideShareOptimizer  implements VrpOptimizer{
 		task.setDistanceDifference(distanceDif);
 	}
 	
-	public void updateSchedule(Vehicle veh, Schedule<AbstractTask> s){
+	public void updateSchedule(Vehicle veh, Schedule s){
 		this.schedule.put(veh.getId(),s);    
 	}
 	
-	@Override
-	public double getQsimEndTime(){
-		return this.qsim.getStopTime();
-	}
+//	@Override
+//	public double getQsimEndTime(){
+//		return this.qsim.getStopTime();
+//	}
 
 
 }
