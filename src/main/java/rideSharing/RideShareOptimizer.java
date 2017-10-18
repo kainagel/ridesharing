@@ -32,8 +32,6 @@ import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 
-import org.matsim.core.mobsim.framework.MobsimAgent.State;
-
 public class RideShareOptimizer  implements VrpOptimizer{
 	private final QSim qsim;
 

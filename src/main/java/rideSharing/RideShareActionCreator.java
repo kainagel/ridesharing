@@ -1,8 +1,14 @@
 package rideSharing;
 
-import org.matsim.contrib.dvrp.passenger.*;
-import org.matsim.contrib.dvrp.schedule.*;
-import org.matsim.contrib.dvrp.vrpagent.*;
+import org.matsim.contrib.dvrp.passenger.PassengerEngine;
+import org.matsim.contrib.dvrp.passenger.SinglePassengerDropoffActivity;
+import org.matsim.contrib.dvrp.passenger.SinglePassengerPickupActivity;
+import org.matsim.contrib.dvrp.schedule.DriveTask;
+import org.matsim.contrib.dvrp.schedule.StayTask;
+import org.matsim.contrib.dvrp.schedule.Task;
+import org.matsim.contrib.dvrp.vrpagent.VrpActivity;
+import org.matsim.contrib.dvrp.vrpagent.VrpAgentLogic;
+import org.matsim.contrib.dvrp.vrpagent.VrpLegs;
 import org.matsim.contrib.dynagent.DynAction;
 import org.matsim.core.mobsim.framework.MobsimTimer;
 

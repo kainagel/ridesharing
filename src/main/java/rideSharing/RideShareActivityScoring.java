@@ -2,7 +2,6 @@ package rideSharing;
 
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.core.scoring.SumScoringFunction.ActivityScoring;
-import org.matsim.core.scoring.functions.ActivityTypeOpeningIntervalCalculator;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.scoring.functions.CharyparNagelScoringParameters;
 
